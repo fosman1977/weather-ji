@@ -462,17 +462,77 @@ export default function PitchCoverPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={cn("rounded-2xl p-6 text-white shadow-xl", suitabilityConfig.color)}
+              className={cn("rounded-2xl p-6 text-white shadow-xl relative overflow-hidden", suitabilityConfig.color)}
             >
-              <div className="flex items-center justify-between">
-                <div>
+              {/* Animated background clouds */}
+              {weather.rainRisk > 30 && (
+                <div className="absolute inset-0 opacity-10 pointer-events-none">
+                  <motion.div
+                    animate={{ x: [-100, 800] }}
+                    transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+                    className="absolute top-4 text-6xl"
+                  >
+                    ☁️
+                  </motion.div>
+                  <motion.div
+                    animate={{ x: [-50, 800] }}
+                    transition={{ duration: 25, repeat: Infinity, ease: 'linear', delay: 5 }}
+                    className="absolute top-12 text-4xl"
+                  >
+                    ☁️
+                  </motion.div>
+                </div>
+              )}
+
+              {/* Animated raindrops for high risk */}
+              {weather.rainRisk >= 70 && (
+                <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+                  {[...Array(8)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ y: -20, x: i * 100 }}
+                      animate={{ y: 400 }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        delay: i * 0.3,
+                        ease: 'linear'
+                      }}
+                      className="absolute text-2xl"
+                    >
+                      💧
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex-1">
                   <h2 className="text-3xl font-bold mb-1">{suitabilityConfig.text}</h2>
-                  <p className="text-white/80">Rain Risk: {weather.rainRisk}%</p>
-                  <p className="text-white/90 text-sm mt-1 font-semibold">
+                  <p className="text-white/80 mb-3">Rain Risk: {weather.rainRisk}%</p>
+
+                  {/* Animated Rain Risk Bar */}
+                  <div className="mb-2">
+                    <div className="h-3 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${weather.rainRisk}%` }}
+                        transition={{ duration: 1, ease: 'easeOut' }}
+                        className={cn(
+                          "h-full rounded-full transition-colors",
+                          weather.rainRisk < 30 ? "bg-green-400" :
+                          weather.rainRisk < 60 ? "bg-yellow-400" :
+                          "bg-red-400"
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-white/90 text-sm font-semibold">
                     {getRiskMessage(weather.rainRisk).subtitle}
                   </p>
                 </div>
-                <suitabilityConfig.icon className="w-16 h-16 opacity-80" />
+                <suitabilityConfig.icon className="w-16 h-16 opacity-80 ml-4" />
               </div>
             </motion.div>
 
@@ -610,17 +670,44 @@ export default function PitchCoverPage() {
                     </div>
 
                     <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-5 border-2 border-purple-100">
-                      <div className="flex justify-between items-center mb-3">
+                      <div className="flex justify-between items-center mb-4">
                         <span className="text-sm font-semibold text-gray-700">⚠️ Risk Ka Meter</span>
                         <Badge variant={weather.rainRisk > 50 ? "destructive" : "secondary"}>
                           {weather.rainRisk > 70 ? '🔥 Bohot Zyada' : weather.rainRisk > 35 ? '😐 Thoda Hai' : '😎 Kam Hai'} Risk
                         </Badge>
                       </div>
-                      <div className="flex justify-between items-end border-t border-purple-200 pt-3">
-                        <span className="text-gray-700 font-medium">💵 Premium Dena Padega</span>
-                        <span className="text-3xl font-bold text-purple-600">₹{premium.toLocaleString()}</span>
+
+                      {/* Visual Premium Gauge */}
+                      <div className="mb-4">
+                        <div className="flex justify-between text-xs text-gray-600 mb-2">
+                          <span>Low Premium</span>
+                          <span>High Premium</span>
+                        </div>
+                        <div className="relative h-6 bg-gradient-to-r from-green-200 via-yellow-200 to-red-200 rounded-full overflow-hidden">
+                          <motion.div
+                            animate={{ left: `${(premium / (ticketValue * 0.95)) * 100}%` }}
+                            transition={{ duration: 0.5, ease: 'easeOut' }}
+                            className="absolute top-0 bottom-0 w-1 -ml-0.5"
+                          >
+                            <div className="h-full w-1 bg-purple-600 shadow-lg" />
+                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded whitespace-nowrap shadow-lg">
+                              ₹{premium.toLocaleString()}
+                            </div>
+                          </motion.div>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500 mt-2">
+
+                      <div className="flex justify-between items-end border-t border-purple-200 pt-3">
+                        <div>
+                          <div className="text-xs text-gray-500 mb-1">💵 Premium Dena Padega</div>
+                          <div className="text-3xl font-bold text-purple-600">₹{premium.toLocaleString()}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-500">Coverage</div>
+                          <div className="text-lg font-bold text-gray-700">₹{ticketValue.toLocaleString()}</div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-3 text-center">
                         🚀 Stonks Potential: {((ticketValue / premium - 1) * 100).toFixed(0)}% agar claim mila toh!
                       </div>
                     </div>
@@ -699,21 +786,51 @@ export default function PitchCoverPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05 }}
                         className={cn(
-                          "flex-shrink-0 w-24 p-3 rounded-xl border-2 text-center",
-                          isRisky ? "border-blue-300 bg-blue-50" : "border-gray-200 bg-white"
+                          "flex-shrink-0 w-28 p-3 rounded-xl border-2 text-center relative overflow-hidden",
+                          isRisky ? "border-blue-400 bg-gradient-to-b from-blue-50 to-blue-100" : "border-gray-200 bg-gradient-to-b from-white to-gray-50"
                         )}
                       >
-                        <div className="text-xs text-gray-500 mb-2">{time}</div>
-                        <div className="my-2">
-                          {isRisky ? (
-                            <CloudRain className="w-6 h-6 text-blue-500 mx-auto" />
-                          ) : (
-                            <Cloud className="w-6 h-6 text-gray-400 mx-auto" />
-                          )}
-                        </div>
-                        <div className="text-lg font-bold text-gray-900">{hour.temp}°</div>
-                        <div className={cn("text-xs font-bold mt-1", isRisky ? "text-blue-600" : "text-gray-500")}>
-                          {hour.rainProb}%
+                        {/* Gradient overlay based on rain probability */}
+                        <div
+                          className="absolute inset-0 bg-gradient-to-t from-blue-500/10 to-transparent pointer-events-none"
+                          style={{ opacity: hour.rainProb / 100 }}
+                        />
+
+                        <div className="relative z-10">
+                          <div className="text-xs text-gray-600 font-semibold mb-2">{time}</div>
+                          <div className="my-2">
+                            {isRisky ? (
+                              <motion.div
+                                animate={{ y: [0, -4, 0] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                              >
+                                <CloudRain className="w-7 h-7 text-blue-600 mx-auto" />
+                              </motion.div>
+                            ) : (
+                              <Cloud className="w-7 h-7 text-gray-400 mx-auto" />
+                            )}
+                          </div>
+                          <div className="text-xl font-bold text-gray-900 mb-2">{hour.temp}°</div>
+
+                          {/* Mini rain probability bar */}
+                          <div className="mt-2">
+                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${hour.rainProb}%` }}
+                                transition={{ duration: 0.8, delay: i * 0.05 }}
+                                className={cn(
+                                  "h-full rounded-full",
+                                  hour.rainProb < 30 ? "bg-green-400" :
+                                  hour.rainProb < 60 ? "bg-yellow-400" :
+                                  "bg-blue-500"
+                                )}
+                              />
+                            </div>
+                            <div className={cn("text-xs font-bold mt-1", isRisky ? "text-blue-700" : "text-gray-600")}>
+                              {hour.rainProb}%
+                            </div>
+                          </div>
                         </div>
                       </motion.div>
                     );
