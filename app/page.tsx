@@ -7,12 +7,13 @@ import {
   Cloud, CloudRain, CloudDrizzle, Sun,
   Shield, Wallet, AlertCircle, CheckCircle, Zap, Trophy,
   ThermometerSun, Droplets, Wind, Eye,
-  Sparkles, Target, Activity
+  Sparkles, Target, Activity, WifiOff, RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
   SelectContent,
@@ -160,16 +161,54 @@ export default function PitchCoverPage() {
   const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
   const [consecutiveLosses, setConsecutiveLosses] = useState(0);
   const [totalWins, setTotalWins] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [newAchievement, setNewAchievement] = useState<string | null>(null);
 
   const policyConfirmationRef = useRef<HTMLDivElement>(null);
 
+  // Load smart defaults from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedStadium = localStorage.getItem('weatherji_stadium');
+      const savedTier = localStorage.getItem('weatherji_tier');
+      const savedAchievements = localStorage.getItem('weatherji_achievements');
+
+      if (savedStadium) {
+        const stadium = STADIUMS.find(s => s.id === savedStadium);
+        if (stadium) setSelectedStadium(stadium);
+      }
+      if (savedTier) {
+        const tier = INSURANCE_TIERS.find(t => t.id === savedTier);
+        if (tier) setSelectedTier(tier);
+      }
+      if (savedAchievements) {
+        try {
+          setAchievements(JSON.parse(savedAchievements));
+        } catch {
+          // Ignore parse errors
+        }
+      }
+    }
+  }, []);
+
+  // Save preferences
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('weatherji_stadium', selectedStadium.id);
+      localStorage.setItem('weatherji_tier', selectedTier.id);
+      localStorage.setItem('weatherji_achievements', JSON.stringify(achievements));
+    }
+  }, [selectedStadium, selectedTier, achievements]);
+
   const fetchWeather = useCallback(async () => {
     setLoading(true);
+    setError(null);
     setLoadingMessage(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
     try {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${selectedStadium.lat}&longitude=${selectedStadium.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,surface_pressure&hourly=temperature_2m,precipitation_probability,precipitation,weather_code&timezone=auto&forecast_days=2`;
 
       const res = await fetch(url);
+      if (!res.ok) throw new Error('Server so gaya lagta hai... 😴');
       const data = await res.json();
 
       const currentHour = new Date().getHours();
@@ -208,6 +247,10 @@ export default function PitchCoverPage() {
       });
     } catch (error) {
       console.error('Weather fetch error:', error);
+      const errorMessage = error instanceof Error && error.message.includes('Failed to fetch')
+        ? 'Internet ka chakkar hai! Babu bhaiya! 😅'
+        : error instanceof Error ? error.message : 'Kuch gadbad ho gayi bhai! 🤔';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -241,6 +284,15 @@ export default function PitchCoverPage() {
 
   const premium = calculatePremium();
 
+  // Helper to show achievement with animation
+  const unlockAchievement = (achievement: string) => {
+    if (!achievements.includes(achievement)) {
+      setAchievements(a => [...a, achievement]);
+      setNewAchievement(achievement);
+      setTimeout(() => setNewAchievement(null), 3000);
+    }
+  };
+
   const buyInsurance = () => {
     if (wallet < premium) return;
 
@@ -255,13 +307,8 @@ export default function PitchCoverPage() {
       purchaseTime: new Date(),
     });
 
-    if (!achievements.includes('🎯 First Timer')) {
-      setAchievements(a => [...a, '🎯 First Timer']);
-    }
-
-    if (ticketValue >= 10000 && !achievements.includes('💰 Crorepati Vibes')) {
-      setAchievements(a => [...a, '💰 Crorepati Vibes']);
-    }
+    unlockAchievement('🎯 First Timer');
+    if (ticketValue >= 10000) unlockAchievement('💰 Crorepati Vibes');
 
     // Scroll to confirmation on mobile
     setTimeout(() => {
@@ -289,36 +336,24 @@ export default function PitchCoverPage() {
       setTotalWins(w => w + 1);
       setConsecutiveLosses(0);
 
-      // New achievements
-      if (payout >= 10000 && !achievements.includes('🚀 Paisa Hi Paisa')) {
-        setAchievements(a => [...a, '🚀 Paisa Hi Paisa']);
-      }
-      if (profit / policyDetails.premium >= 2 && !achievements.includes('📊 200% ROI Boss')) {
-        setAchievements(a => [...a, '📊 200% ROI Boss']);
-      }
-      if (totalWins + 1 >= 5 && !achievements.includes('🎯 Weather Baba')) {
-        setAchievements(a => [...a, '🎯 Weather Baba']);
-      }
+      // New achievements with animations
+      if (payout >= 10000) unlockAchievement('🚀 Paisa Hi Paisa');
+      if (profit / policyDetails.premium >= 2) unlockAchievement('📊 200% ROI Boss');
+      if (totalWins + 1 >= 5) unlockAchievement('🎯 Weather Baba');
     } else {
       setMatchResult('played');
       setTotalProfitLoss(p => p - policyDetails.premium);
       setConsecutiveLosses(c => c + 1);
 
       // Paper hands achievement
-      if (weather.rainRisk < 30 && !achievements.includes('📉 Paper Hands')) {
-        setAchievements(a => [...a, '📉 Paper Hands']);
-      }
+      if (weather.rainRisk < 30) unlockAchievement('📉 Paper Hands');
       // Overconfident achievement
-      if (consecutiveLosses + 1 >= 3 && !achievements.includes('🤡 Overconfident')) {
-        setAchievements(a => [...a, '🤡 Overconfident']);
-      }
+      if (consecutiveLosses + 1 >= 3) unlockAchievement('🤡 Overconfident');
     }
 
     setShowResult(true);
 
-    if (weather.rainRisk < 20 && !achievements.includes('😎 Thrill Seeker Bhai')) {
-      setAchievements(a => [...a, '😎 Thrill Seeker Bhai']);
-    }
+    if (weather.rainRisk < 20) unlockAchievement('😎 Thrill Seeker Bhai');
   };
 
   const getSuitabilityConfig = (suitability: WeatherData['matchSuitability']) => {
@@ -341,14 +376,57 @@ export default function PitchCoverPage() {
   if (loading && !weather) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto px-4">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
             className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
           />
-          <p className="text-gray-600 font-medium">{loadingMessage}</p>
+          <p className="text-gray-600 font-medium mb-4">{loadingMessage}</p>
+          <div className="space-y-3">
+            <Skeleton className="h-32 w-full" />
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+            </div>
+          </div>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="max-w-md w-full"
+        >
+          <Card className="border-2 border-red-200">
+            <CardContent className="p-8 text-center">
+              <motion.div
+                animate={{ rotate: [0, -10, 10, -10, 0] }}
+                transition={{ duration: 0.5 }}
+                className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"
+              >
+                <WifiOff className="w-10 h-10 text-red-600" />
+              </motion.div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Oops! 😅</h2>
+              <p className="text-gray-600 mb-6">{error}</p>
+              <Button
+                onClick={() => {
+                  setError(null);
+                  fetchWeather();
+                }}
+                className="w-full"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Dubara Try Karo!
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     );
   }
@@ -976,6 +1054,31 @@ export default function PitchCoverPage() {
           ⚠️ Disclaimer: Ye bas mazaak hai bhai. Asli paisa nahi hai, asli insurance bhi nahi. Weather data Open-Meteo se aa raha hai. Bas timepass ke liye! 🎮
         </p>
       </div>
+
+      {/* Achievement Unlock Popup */}
+      <AnimatePresence>
+        {newAchievement && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 0.3, repeat: 2 }}
+              className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-6 py-4 rounded-2xl shadow-2xl border-4 border-yellow-300 flex items-center gap-3"
+            >
+              <Trophy className="w-8 h-8" />
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wide">Achievement Unlocked!</div>
+                <div className="text-lg font-bold">{newAchievement}</div>
+              </div>
+              <Sparkles className="w-6 h-6" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
