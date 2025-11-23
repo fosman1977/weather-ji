@@ -1,0 +1,1 @@
+// Contents of lib/components/ui/tabs.tsx will be copied here. Please provide the content you want in this file.
