@@ -21,6 +21,64 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
+// Funny loading messages
+const LOADING_MESSAGES = [
+  "Baadal se baat kar rahe hain... ☁️",
+  "Weather uncle ko phone kar rahe hain... 📞",
+  "Barometer ko chai pila rahe hain... ☕",
+  "Satellite se gossip kar rahe hain... 🛰️",
+  "Indra Dev ko WhatsApp kar rahe hain... ⚡",
+  "Mausam ka mood check kar rahe hain... 🌦️",
+];
+
+// Stadium descriptions
+const STADIUM_DESCRIPTIONS: Record<string, string> = {
+  'blr': 'Bengaluru tech bros ka ghar 💻',
+  'mum': 'Mumbai ka pride (lekin drainage... 🤔)',
+  'kol': 'Kolkata ki crown jewel (umbrella zaroori) ☔',
+  'ahm': 'Biggest stadium, biggest dreams 🏟️',
+  'che': 'Chennai hot hot hot! 🔥',
+  'del': 'Dilli ki dhadkan ❤️',
+  'dha': 'Mountain vibes, unpredictable weather 🏔️',
+};
+
+// Time-based greetings
+const getTimeBasedGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return { emoji: '🌅', text: 'Subah ka weather check!' };
+  if (hour >= 12 && hour < 17) return { emoji: '🔥', text: 'Dopahar ki garmi mein!' };
+  if (hour >= 17 && hour < 21) return { emoji: '🌆', text: 'Shaam ho gayi, match time!' };
+  return { emoji: '🌙', text: 'Raat ko bhi trading? Crypto bro ho kya?' };
+};
+
+// Dynamic risk messages
+const getRiskMessage = (risk: number) => {
+  if (risk < 20) return { text: 'Chill maar bhai ☀️', subtitle: 'Barish ka koi chance nahi' };
+  if (risk < 40) return { text: 'Thoda sa tension lelo 😅', subtitle: 'Just in case...' };
+  if (risk < 60) return { text: 'Ab serious ho jao 😰', subtitle: 'Insurance le lo warna...' };
+  if (risk < 80) return { text: 'PAKKA barish aayegi! ☔', subtitle: 'Insurance is not optional' };
+  return { text: 'Bhaago! 🏃', subtitle: 'Match cancel hone wala hai!' };
+};
+
+// P/L Commentary
+const getProfitLossCommentary = (amount: number) => {
+  if (amount > 5000) return '🚀 Paisa hi paisa ho gaya!';
+  if (amount > 0) return '📈 Stonks! Acha chal raha hai';
+  if (amount === 0) return '⚖️ Perfectly balanced';
+  if (amount > -2000) return '📉 Not stonks, but manageable';
+  return '😭 Bhai rehne de, aur nuksan mat kar';
+};
+
+// Social proof messages
+const SOCIAL_PROOF = [
+  '💬 Rahul from Delhi saved ₹5000!',
+  '💬 Priya from Mumbai: "Better than stock market!"',
+  '💬 Amit: "Papa ko bhi recommend kiya"',
+  '💬 Sneha: "Barish insurance > Life insurance 😂"',
+  '💬 Karan from Bangalore: "Tech bros approve!"',
+  '💬 Anjali: "Mere 10K bach gaye bhai!"',
+];
+
 // Types
 interface Stadium {
   id: string;
@@ -80,9 +138,9 @@ const STADIUMS: Stadium[] = [
 ];
 
 const INSURANCE_TIERS: InsuranceTier[] = [
-  { id: 'basic', name: '🤝 Dost Plan', multiplier: 1.0, features: ['100% paisa wapas if match cancelled', 'Same-day processing (lightning fast!)'], color: 'bg-blue-500' },
-  { id: 'premium', name: '👑 VIP Tier (Boss Vibes)', multiplier: 1.3, features: ['Full refund if barish ho gaya', 'Instant processing like Zomato delivery', '50% back if 2hr+ delay ho'], color: 'bg-purple-500' },
-  { id: 'platinum', name: '💎 Diamond Haath Wala', multiplier: 1.6, features: ['120% profit if washed out (stonks!)', 'Priority instant claims (VVIP treatment)', '75% refund if 1hr delay', 'Free upgrade to next match (because you matter)'], color: 'bg-amber-500' },
+  { id: 'basic', name: '🤝 Dost Plan', multiplier: 1.0, features: ['100% paisa wapas if match cancelled', 'Same-day processing (lightning fast!)', '💪 Broke but responsible'], color: 'bg-blue-500' },
+  { id: 'premium', name: '👑 VIP Tier (Boss Vibes)', multiplier: 1.3, features: ['Full refund if barish ho gaya', 'Instant processing like Zomato delivery', '50% back if 2hr+ delay ho', '🌟 Middle class with dreams'], color: 'bg-purple-500' },
+  { id: 'platinum', name: '💎 Diamond Haath Wala', multiplier: 1.6, features: ['120% profit if washed out (stonks!)', 'Priority instant claims (VVIP treatment)', '75% refund if 1hr delay', 'Free upgrade to next match (because you matter)', '💎 Ameer log only (Papa ka paisa?)'], color: 'bg-amber-500' },
 ];
 
 export default function PitchCoverPage() {
@@ -98,9 +156,13 @@ export default function PitchCoverPage() {
   const [matchResult, setMatchResult] = useState<'rained' | 'played' | null>(null);
   const [achievements, setAchievements] = useState<string[]>([]);
   const [totalProfitLoss, setTotalProfitLoss] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
+  const [consecutiveLosses, setConsecutiveLosses] = useState(0);
+  const [totalWins, setTotalWins] = useState(0);
 
   const fetchWeather = useCallback(async () => {
     setLoading(true);
+    setLoadingMessage(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
     try {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${selectedStadium.lat}&longitude=${selectedStadium.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,surface_pressure&hourly=temperature_2m,precipitation_probability,precipitation,weather_code&timezone=auto&forecast_days=2`;
 
@@ -212,16 +274,36 @@ export default function PitchCoverPage() {
       let payout = policyDetails.coverage;
       if (policyDetails.tier.id === 'platinum') payout = Math.round(payout * 1.2);
 
+      const profit = payout - policyDetails.premium;
       setWallet(w => w + payout);
       setMatchResult('rained');
-      setTotalProfitLoss(p => p + (payout - policyDetails.premium));
+      setTotalProfitLoss(p => p + profit);
+      setTotalWins(w => w + 1);
+      setConsecutiveLosses(0);
 
+      // New achievements
       if (payout >= 10000 && !achievements.includes('🚀 Paisa Hi Paisa')) {
         setAchievements(a => [...a, '🚀 Paisa Hi Paisa']);
+      }
+      if (profit / policyDetails.premium >= 2 && !achievements.includes('📊 200% ROI Boss')) {
+        setAchievements(a => [...a, '📊 200% ROI Boss']);
+      }
+      if (totalWins + 1 >= 5 && !achievements.includes('🎯 Weather Baba')) {
+        setAchievements(a => [...a, '🎯 Weather Baba']);
       }
     } else {
       setMatchResult('played');
       setTotalProfitLoss(p => p - policyDetails.premium);
+      setConsecutiveLosses(c => c + 1);
+
+      // Paper hands achievement
+      if (weather.rainRisk < 30 && !achievements.includes('📉 Paper Hands')) {
+        setAchievements(a => [...a, '📉 Paper Hands']);
+      }
+      // Overconfident achievement
+      if (consecutiveLosses + 1 >= 3 && !achievements.includes('🤡 Overconfident')) {
+        setAchievements(a => [...a, '🤡 Overconfident']);
+      }
     }
 
     setShowResult(true);
@@ -257,7 +339,7 @@ export default function PitchCoverPage() {
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
             className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
           />
-          <p className="text-gray-600 font-medium">Barometer check kar rahe hain... ⚡</p>
+          <p className="text-gray-600 font-medium">{loadingMessage}</p>
         </div>
       </div>
     );
@@ -275,7 +357,9 @@ export default function PitchCoverPage() {
                 <Umbrella className="w-8 h-8" />
                 ☔ Barish Se Bachao
               </h1>
-              <p className="text-green-100 text-sm mt-1">Cricket + Weather + Insurance = No Tension! 🏏</p>
+              <p className="text-green-100 text-sm mt-1">
+                {getTimeBasedGreeting().emoji} {getTimeBasedGreeting().text}
+              </p>
             </div>
 
             <motion.div
@@ -290,9 +374,14 @@ export default function PitchCoverPage() {
                 ₹{wallet.toLocaleString()}
               </div>
               {totalProfitLoss !== 0 && (
-                <div className={cn("text-xs font-medium mt-1", totalProfitLoss > 0 ? "text-green-300" : "text-red-300")}>
-                  {totalProfitLoss > 0 ? '+' : ''}₹{totalProfitLoss.toLocaleString()}
-                </div>
+                <>
+                  <div className={cn("text-xs font-medium mt-1", totalProfitLoss > 0 ? "text-green-300" : "text-red-300")}>
+                    {totalProfitLoss > 0 ? '+' : ''}₹{totalProfitLoss.toLocaleString()}
+                  </div>
+                  <div className="text-[10px] text-yellow-200 mt-0.5">
+                    {getProfitLossCommentary(totalProfitLoss)}
+                  </div>
+                </>
               )}
             </motion.div>
           </div>
@@ -334,6 +423,13 @@ export default function PitchCoverPage() {
               </SelectContent>
             </Select>
 
+            {/* Stadium Description */}
+            <div className="mt-3 text-center">
+              <p className="text-sm text-gray-600 italic">
+                {STADIUM_DESCRIPTIONS[selectedStadium.id]}
+              </p>
+            </div>
+
             <div className="grid grid-cols-3 gap-4 mt-4">
               <div className="text-center p-3 bg-slate-50 rounded-lg">
                 <Target className="w-5 h-5 mx-auto text-blue-500 mb-1" />
@@ -365,6 +461,9 @@ export default function PitchCoverPage() {
                 <div>
                   <h2 className="text-3xl font-bold mb-1">{suitabilityConfig.text}</h2>
                   <p className="text-white/80">Rain Risk: {weather.rainRisk}%</p>
+                  <p className="text-white/90 text-sm mt-1 font-semibold">
+                    {getRiskMessage(weather.rainRisk).subtitle}
+                  </p>
                 </div>
                 <suitabilityConfig.icon className="w-16 h-16 opacity-80" />
               </div>
@@ -411,6 +510,33 @@ export default function PitchCoverPage() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* High Risk Warning */}
+            {weather.rainRisk >= 80 && !hasPolicy && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl p-6 text-white shadow-2xl border-4 border-red-300"
+              >
+                <div className="flex items-start gap-4">
+                  <AlertCircle className="w-12 h-12 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-2xl font-bold mb-2">🔥 This Is Fine 🔥</h3>
+                    <p className="text-red-100 mb-3">
+                      Bhai {weather.rainRisk}% rain risk hai aur insurance nahi liya? Match 100% cancel hone wala hai!
+                      Ticket ka paisa dubne wala hai! 😱
+                    </p>
+                    <div className="bg-white/20 rounded-lg p-3 text-sm">
+                      <p className="font-bold">⚠️ WARNING:</p>
+                      <p className="text-red-50">
+                        You&apos;re about to lose ₹{ticketValue.toLocaleString()} with {weather.rainRisk}% certainty.
+                        Insurance le lo abhi! Premium sirf ₹{premium.toLocaleString()} hai!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             <Card className="border-2 border-purple-200 shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 p-6 text-white">
@@ -613,16 +739,37 @@ export default function PitchCoverPage() {
                   >
                     <CloudRain className="w-10 h-10 text-green-600" />
                   </motion.div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">☔ Match Cancel Ho Gaya!</h2>
-                  <p className="text-gray-600 mb-6">Paisa aa gaya account mein! Insurance FTW! 🎉</p>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    {policyDetails.tier.id === 'platinum' ? '💎 Ameer Ho Gaye Bhai!' : '☔ Match Cancel Ho Gaya!'}
+                  </h2>
+                  <p className="text-gray-600 mb-4">
+                    {policyDetails.tier.id === 'platinum'
+                      ? 'Platinum plan ka kamaal! 120% profit mil gaya! 🚀'
+                      : policyDetails.tier.id === 'premium'
+                      ? 'VIP treatment mil gayi! Paisa wapas aa gaya! 👑'
+                      : 'Insurance FTW! Full refund mil gaya bhai! 🎉'
+                    }
+                  </p>
+                  <p className="text-xs text-purple-600 italic mb-6">
+                    &ldquo;{weather?.rainRisk && weather.rainRisk > 70 ? 'Weather baba ne sahi predict kiya tha! 🎯' : 'Lucky day tha tumhara! 🍀'}&rdquo;
+                  </p>
 
-                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-6">
-                    <div className="text-sm text-green-700 font-bold uppercase tracking-wide mb-2">💰 Paisa Mil Gaya Bhai</div>
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6 mb-6 shadow-lg">
+                    <div className="text-sm text-green-700 font-bold uppercase tracking-wide mb-2">
+                      💰 {((policyDetails.tier.id === 'platinum' ? Math.round(policyDetails.coverage * 1.2) : policyDetails.coverage) - policyDetails.premium) > 3000 ? 'JACKPOT!' : 'Paisa Mil Gaya Bhai'}
+                    </div>
                     <div className="text-4xl font-bold text-green-600">
                       ₹{(policyDetails.tier.id === 'platinum' ? Math.round(policyDetails.coverage * 1.2) : policyDetails.coverage).toLocaleString()}
                     </div>
-                    <div className="text-xs text-green-600 mt-2">
-                      🚀 Pure Profit: ₹{((policyDetails.tier.id === 'platinum' ? Math.round(policyDetails.coverage * 1.2) : policyDetails.coverage) - policyDetails.premium).toLocaleString()} (Stonks!)
+                    <div className="text-xs text-green-600 mt-3 space-y-1">
+                      <div>🚀 Pure Profit: ₹{((policyDetails.tier.id === 'platinum' ? Math.round(policyDetails.coverage * 1.2) : policyDetails.coverage) - policyDetails.premium).toLocaleString()}</div>
+                      <div className="font-bold">
+                        {((policyDetails.tier.id === 'platinum' ? Math.round(policyDetails.coverage * 1.2) : policyDetails.coverage) - policyDetails.premium) > 5000
+                          ? '🔥 Ghar jaake party do!'
+                          : ((policyDetails.tier.id === 'platinum' ? Math.round(policyDetails.coverage * 1.2) : policyDetails.coverage) - policyDetails.premium) > 2000
+                          ? '📈 Acha khasa profit!'
+                          : '✅ Small win but win is win!'}
+                      </div>
                     </div>
                   </div>
                 </>
@@ -635,16 +782,39 @@ export default function PitchCoverPage() {
                   >
                     <Sun className="w-10 h-10 text-amber-500" />
                   </motion.div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">🌞 Match Khel Gaya!</h2>
-                  <p className="text-gray-600 mb-6">Barish nahi aayi. Insurance ka paisa gaya 😅</p>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                    {consecutiveLosses >= 2 ? '🤡 Phir Se Fail!' : '🌞 Match Khel Gaya!'}
+                  </h2>
+                  <p className="text-gray-600 mb-4">
+                    {weather?.rainRisk && weather.rainRisk < 20
+                      ? 'Itni kam risk mein bhi insurance le liya? Overthinking much? 😅'
+                      : consecutiveLosses >= 2
+                      ? 'Bhai strategy change karo, ye nahi chal raha! 🤦'
+                      : 'Barish nahi aayi. Premium de diya tha woh gaya! 😅'
+                    }
+                  </p>
+                  <p className="text-xs text-purple-600 italic mb-6">
+                    &ldquo;{consecutiveLosses >= 2 ? 'Learn from mistakes bhai! 📚' : 'Better luck next time! 🍀'}&rdquo;
+                  </p>
 
-                  <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 mb-6">
-                    <div className="text-sm text-amber-700 font-bold uppercase tracking-wide mb-2">💸 Premium De Diya Tha</div>
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-6 mb-6 shadow-lg">
+                    <div className="text-sm text-amber-700 font-bold uppercase tracking-wide mb-2">
+                      💸 {policyDetails.premium > 3000 ? 'Bada Nuksan Ho Gaya' : 'Premium De Diya Tha'}
+                    </div>
                     <div className="text-4xl font-bold text-amber-600">
                       -₹{policyDetails.premium.toLocaleString()}
                     </div>
-                    <div className="text-xs text-amber-600 mt-2">
-                      😬 Agli baar phir try karo!
+                    <div className="text-xs text-amber-600 mt-3 space-y-1">
+                      <div>
+                        {policyDetails.premium > 3000
+                          ? '😭 Mere paise wapas do!'
+                          : consecutiveLosses >= 2
+                          ? '🤦 Strategy fail ho rahi hai'
+                          : '😬 Agli baar soch samajh ke!'}
+                      </div>
+                      <div className="font-bold text-purple-600">
+                        💡 Tip: {weather?.rainRisk && weather.rainRisk > 50 ? 'High risk mein insurance lene ka!' : 'Low risk skip karo!'}
+                      </div>
                     </div>
                   </div>
                 </>
@@ -657,6 +827,21 @@ export default function PitchCoverPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Social Proof Ticker */}
+      <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 border-y-2 border-purple-200 py-4 overflow-hidden">
+        <motion.div
+          animate={{ x: [0, -1000] }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+          className="flex gap-8 whitespace-nowrap"
+        >
+          {[...SOCIAL_PROOF, ...SOCIAL_PROOF].map((proof, i) => (
+            <div key={i} className="inline-flex items-center gap-2 text-purple-700 font-medium">
+              {proof}
+            </div>
+          ))}
+        </motion.div>
+      </div>
 
       <div className="max-w-4xl mx-auto px-4 pb-8">
         <p className="text-center text-xs text-gray-400">
