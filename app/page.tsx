@@ -229,11 +229,6 @@ export default function PitchCoverPage() {
     if (weather.rainRisk < 20 && !achievements.includes('😎 Thrill Seeker Bhai')) {
       setAchievements(a => [...a, '😎 Thrill Seeker Bhai']);
     }
-
-    setTimeout(() => {
-      setHasPolicy(false);
-      setPolicyDetails(null);
-    }, 500);
   };
 
   const getSuitabilityConfig = (suitability: WeatherData['matchSuitability']) => {
@@ -249,6 +244,8 @@ export default function PitchCoverPage() {
   const resetGame = () => {
     setShowResult(false);
     setMatchResult(null);
+    setHasPolicy(false);
+    setPolicyDetails(null);
   };
 
   if (loading && !weather) {
@@ -325,7 +322,7 @@ export default function PitchCoverPage() {
               <SelectTrigger className="w-full text-lg font-semibold h-14">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 {STADIUMS.map(stadium => (
                   <SelectItem key={stadium.id} value={stadium.id} className="text-lg">
                     <div className="flex items-center justify-between w-full">
