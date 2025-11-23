@@ -80,9 +80,9 @@ const STADIUMS: Stadium[] = [
 ];
 
 const INSURANCE_TIERS: InsuranceTier[] = [
-  { id: 'basic', name: 'Basic Cover', multiplier: 1.0, features: ['100% refund if washed out', 'Same-day claim'], color: 'bg-blue-500' },
-  { id: 'premium', name: 'Premium Shield', multiplier: 1.3, features: ['100% refund if washed out', 'Instant claim processing', '50% refund if delayed >2hrs'], color: 'bg-purple-500' },
-  { id: 'platinum', name: 'Platinum Protection', multiplier: 1.6, features: ['120% refund if washed out', 'Priority instant claims', '75% refund if delayed >1hr', 'Free upgrade to next match'], color: 'bg-amber-500' },
+  { id: 'basic', name: '🤝 Dost Plan', multiplier: 1.0, features: ['100% paisa wapas if match cancelled', 'Same-day processing (lightning fast!)'], color: 'bg-blue-500' },
+  { id: 'premium', name: '👑 VIP Tier (Boss Vibes)', multiplier: 1.3, features: ['Full refund if barish ho gaya', 'Instant processing like Zomato delivery', '50% back if 2hr+ delay ho'], color: 'bg-purple-500' },
+  { id: 'platinum', name: '💎 Diamond Haath Wala', multiplier: 1.6, features: ['120% profit if washed out (stonks!)', 'Priority instant claims (VVIP treatment)', '75% refund if 1hr delay', 'Free upgrade to next match (because you matter)'], color: 'bg-amber-500' },
 ];
 
 export default function PitchCoverPage() {
@@ -190,12 +190,12 @@ export default function PitchCoverPage() {
       purchaseTime: new Date(),
     });
 
-    if (!achievements.includes('first_policy')) {
-      setAchievements(a => [...a, 'first_policy']);
+    if (!achievements.includes('🎯 First Timer')) {
+      setAchievements(a => [...a, '🎯 First Timer']);
     }
 
-    if (ticketValue >= 10000 && !achievements.includes('high_roller')) {
-      setAchievements(a => [...a, 'high_roller']);
+    if (ticketValue >= 10000 && !achievements.includes('💰 Crorepati Vibes')) {
+      setAchievements(a => [...a, '💰 Crorepati Vibes']);
     }
   };
 
@@ -216,8 +216,8 @@ export default function PitchCoverPage() {
       setMatchResult('rained');
       setTotalProfitLoss(p => p + (payout - policyDetails.premium));
 
-      if (payout >= 10000 && !achievements.includes('big_claim')) {
-        setAchievements(a => [...a, 'big_claim']);
+      if (payout >= 10000 && !achievements.includes('🚀 Paisa Hi Paisa')) {
+        setAchievements(a => [...a, '🚀 Paisa Hi Paisa']);
       }
     } else {
       setMatchResult('played');
@@ -226,22 +226,17 @@ export default function PitchCoverPage() {
 
     setShowResult(true);
 
-    if (weather.rainRisk < 20 && !achievements.includes('risk_taker')) {
-      setAchievements(a => [...a, 'risk_taker']);
+    if (weather.rainRisk < 20 && !achievements.includes('😎 Thrill Seeker Bhai')) {
+      setAchievements(a => [...a, '😎 Thrill Seeker Bhai']);
     }
-
-    setTimeout(() => {
-      setHasPolicy(false);
-      setPolicyDetails(null);
-    }, 500);
   };
 
   const getSuitabilityConfig = (suitability: WeatherData['matchSuitability']) => {
     const configs = {
-      excellent: { color: 'bg-green-500', text: 'Perfect Conditions', icon: Sun, textColor: 'text-green-700' },
-      good: { color: 'bg-blue-500', text: 'Good Conditions', icon: Cloud, textColor: 'text-blue-700' },
-      risky: { color: 'bg-amber-500', text: 'Risky Conditions', icon: CloudDrizzle, textColor: 'text-amber-700' },
-      poor: { color: 'bg-red-500', text: 'Washout Risk', icon: CloudRain, textColor: 'text-red-700' },
+      excellent: { color: 'bg-green-500', text: '🌞 Bilkul Mast Weather!', icon: Sun, textColor: 'text-green-700' },
+      good: { color: 'bg-blue-500', text: '👍 Chill Hai Sab', icon: Cloud, textColor: 'text-blue-700' },
+      risky: { color: 'bg-amber-500', text: '😬 Thoda Risky Hai Boss', icon: CloudDrizzle, textColor: 'text-amber-700' },
+      poor: { color: 'bg-red-500', text: '☔ Pakka Barish Aayega!', icon: CloudRain, textColor: 'text-red-700' },
     };
     return configs[suitability];
   };
@@ -249,6 +244,8 @@ export default function PitchCoverPage() {
   const resetGame = () => {
     setShowResult(false);
     setMatchResult(null);
+    setHasPolicy(false);
+    setPolicyDetails(null);
   };
 
   if (loading && !weather) {
@@ -260,7 +257,7 @@ export default function PitchCoverPage() {
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
             className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
           />
-          <p className="text-gray-600 font-medium">Analyzing weather patterns...</p>
+          <p className="text-gray-600 font-medium">Barometer check kar rahe hain... ⚡</p>
         </div>
       </div>
     );
@@ -276,9 +273,9 @@ export default function PitchCoverPage() {
             <div>
               <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3">
                 <Umbrella className="w-8 h-8" />
-                Pitch Cover Pro
+                ☔ Barish Se Bachao
               </h1>
-              <p className="text-green-100 text-sm mt-1">Smart Cricket Weather Insurance</p>
+              <p className="text-green-100 text-sm mt-1">Cricket + Weather + Insurance = No Tension! 🏏</p>
             </div>
 
             <motion.div
@@ -287,7 +284,7 @@ export default function PitchCoverPage() {
             >
               <div className="flex items-center gap-2 mb-1">
                 <Wallet className="w-4 h-4 text-yellow-300" />
-                <span className="text-xs text-green-100">Balance</span>
+                <span className="text-xs text-green-100">Tijori 💰</span>
               </div>
               <div className="font-mono font-bold text-2xl text-yellow-300">
                 ₹{wallet.toLocaleString()}
@@ -320,12 +317,12 @@ export default function PitchCoverPage() {
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         <Card className="border-2 border-green-100">
           <CardContent className="p-6">
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Select Stadium</label>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">🏟️ Kaun Sa Maidan?</label>
             <Select value={selectedStadium.id} onValueChange={(id) => setSelectedStadium(STADIUMS.find(s => s.id === id)!)}>
               <SelectTrigger className="w-full text-lg font-semibold h-14">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 {STADIUMS.map(stadium => (
                   <SelectItem key={stadium.id} value={stadium.id} className="text-lg">
                     <div className="flex items-center justify-between w-full">
@@ -340,17 +337,17 @@ export default function PitchCoverPage() {
             <div className="grid grid-cols-3 gap-4 mt-4">
               <div className="text-center p-3 bg-slate-50 rounded-lg">
                 <Target className="w-5 h-5 mx-auto text-blue-500 mb-1" />
-                <div className="text-xs text-gray-500">Capacity</div>
-                <div className="text-sm font-bold">{(selectedStadium.capacity / 1000).toFixed(0)}K</div>
+                <div className="text-xs text-gray-500">Crowd Capacity</div>
+                <div className="text-sm font-bold">{(selectedStadium.capacity / 1000).toFixed(0)}K logon</div>
               </div>
               <div className="text-center p-3 bg-slate-50 rounded-lg">
                 <Droplets className="w-5 h-5 mx-auto text-cyan-500 mb-1" />
-                <div className="text-xs text-gray-500">Drainage</div>
-                <div className="text-sm font-bold capitalize">{selectedStadium.drainage}</div>
+                <div className="text-xs text-gray-500">Paani Nikal Jaata Hai?</div>
+                <div className="text-sm font-bold capitalize">{selectedStadium.drainage === 'excellent' ? '💯 Ekdum' : selectedStadium.drainage === 'good' ? '👍 Theek' : selectedStadium.drainage === 'average' ? '😐 Normal' : '😬 Slow'}</div>
               </div>
               <div className="text-center p-3 bg-slate-50 rounded-lg">
                 <Shield className="w-5 h-5 mx-auto text-purple-500 mb-1" />
-                <div className="text-xs text-gray-500">Covered</div>
+                <div className="text-xs text-gray-500">Roof Hai Kya?</div>
                 <div className="text-sm font-bold">{selectedStadium.covered}%</div>
               </div>
             </div>
@@ -419,16 +416,16 @@ export default function PitchCoverPage() {
               <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 p-6 text-white">
                 <h2 className="text-2xl font-bold flex items-center gap-2 mb-2">
                   <Shield className="w-7 h-7" />
-                  Weather Insurance
+                  🛡️ Barish Ka Insurance
                 </h2>
-                <p className="text-purple-100 text-sm">Protect your match-day investment</p>
+                <p className="text-purple-100 text-sm">Ticket ka paisa dubne se bachao! 💸</p>
               </div>
 
               <CardContent className="p-6">
                 {!hasPolicy ? (
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-3">Coverage Tier</label>
+                      <label className="block text-sm font-bold text-gray-700 mb-3">💎 Apna Plan Chuno Bhai</label>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {INSURANCE_TIERS.map(tier => (
                           <motion.button
@@ -462,7 +459,7 @@ export default function PitchCoverPage() {
 
                     <div>
                       <div className="flex justify-between mb-3">
-                        <label className="text-sm font-bold text-gray-700">Ticket Value to Cover</label>
+                        <label className="text-sm font-bold text-gray-700">🎫 Ticket Ka Value (Kitna Udana Hai?)</label>
                         <span className="text-2xl font-bold text-purple-600">₹{ticketValue.toLocaleString()}</span>
                       </div>
                       <Slider
@@ -481,17 +478,17 @@ export default function PitchCoverPage() {
 
                     <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-5 border-2 border-purple-100">
                       <div className="flex justify-between items-center mb-3">
-                        <span className="text-sm font-semibold text-gray-700">Risk Assessment</span>
+                        <span className="text-sm font-semibold text-gray-700">⚠️ Risk Ka Meter</span>
                         <Badge variant={weather.rainRisk > 50 ? "destructive" : "secondary"}>
-                          {weather.rainRisk > 70 ? 'High' : weather.rainRisk > 35 ? 'Medium' : 'Low'} Risk
+                          {weather.rainRisk > 70 ? '🔥 Bohot Zyada' : weather.rainRisk > 35 ? '😐 Thoda Hai' : '😎 Kam Hai'} Risk
                         </Badge>
                       </div>
                       <div className="flex justify-between items-end border-t border-purple-200 pt-3">
-                        <span className="text-gray-700 font-medium">Premium Cost</span>
+                        <span className="text-gray-700 font-medium">💵 Premium Dena Padega</span>
                         <span className="text-3xl font-bold text-purple-600">₹{premium.toLocaleString()}</span>
                       </div>
                       <div className="text-xs text-gray-500 mt-2">
-                        ROI Potential: {((ticketValue / premium - 1) * 100).toFixed(0)}% if claimed
+                        🚀 Stonks Potential: {((ticketValue / premium - 1) * 100).toFixed(0)}% agar claim mila toh!
                       </div>
                     </div>
 
@@ -503,12 +500,12 @@ export default function PitchCoverPage() {
                       {wallet < premium ? (
                         <>
                           <AlertCircle className="w-5 h-5 mr-2" />
-                          Insufficient Funds
+                          😭 Paisa Kam Pad Gaya Bhai
                         </>
                       ) : (
                         <>
                           <Shield className="w-5 h-5 mr-2" />
-                          Purchase Coverage - ₹{premium.toLocaleString()}
+                          🛒 Le Lo Insurance - ₹{premium.toLocaleString()}
                         </>
                       )}
                     </Button>
@@ -526,18 +523,18 @@ export default function PitchCoverPage() {
                     >
                       <Shield className="w-10 h-10 text-white" />
                     </motion.div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">You&apos;re Covered!</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">🎉 Done! Ab Tension Free!</h3>
                     <p className="text-gray-600 mb-1">Coverage: <span className="font-bold text-purple-600">₹{policyDetails.coverage.toLocaleString()}</span></p>
-                    <p className="text-sm text-gray-500 mb-6">Tier: {policyDetails.tier.name}</p>
+                    <p className="text-sm text-gray-500 mb-6">Plan: {policyDetails.tier.name}</p>
 
                     <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                      <p className="text-xs text-blue-600 mb-3 font-medium">Test your luck or wait for match day...</p>
+                      <p className="text-xs text-blue-600 mb-3 font-medium">Dekh lo kya hoga match mein... 🎲</p>
                       <Button
                         onClick={simulateMatch}
                         className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
                       >
                         <Zap className="w-4 h-4 mr-2" />
-                        Simulate Match Result
+                        ⚡ Match Simulate Karo
                       </Button>
                     </div>
                   </motion.div>
@@ -549,7 +546,7 @@ export default function PitchCoverPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Eye className="w-5 h-5" />
-                  12-Hour Forecast
+                  🔮 Agle 12 Ghante Ka Haal
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -616,16 +613,16 @@ export default function PitchCoverPage() {
                   >
                     <CloudRain className="w-10 h-10 text-green-600" />
                   </motion.div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Match Washed Out!</h2>
-                  <p className="text-gray-600 mb-6">Your insurance claim has been processed.</p>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">☔ Match Cancel Ho Gaya!</h2>
+                  <p className="text-gray-600 mb-6">Paisa aa gaya account mein! Insurance FTW! 🎉</p>
 
                   <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-6">
-                    <div className="text-sm text-green-700 font-bold uppercase tracking-wide mb-2">Payout Received</div>
+                    <div className="text-sm text-green-700 font-bold uppercase tracking-wide mb-2">💰 Paisa Mil Gaya Bhai</div>
                     <div className="text-4xl font-bold text-green-600">
                       ₹{(policyDetails.tier.id === 'platinum' ? Math.round(policyDetails.coverage * 1.2) : policyDetails.coverage).toLocaleString()}
                     </div>
                     <div className="text-xs text-green-600 mt-2">
-                      Net Profit: ₹{((policyDetails.tier.id === 'platinum' ? Math.round(policyDetails.coverage * 1.2) : policyDetails.coverage) - policyDetails.premium).toLocaleString()}
+                      🚀 Pure Profit: ₹{((policyDetails.tier.id === 'platinum' ? Math.round(policyDetails.coverage * 1.2) : policyDetails.coverage) - policyDetails.premium).toLocaleString()} (Stonks!)
                     </div>
                   </div>
                 </>
@@ -638,23 +635,23 @@ export default function PitchCoverPage() {
                   >
                     <Sun className="w-10 h-10 text-amber-500" />
                   </motion.div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Match Completed!</h2>
-                  <p className="text-gray-600 mb-6">The weather stayed clear. No claim filed.</p>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">🌞 Match Khel Gaya!</h2>
+                  <p className="text-gray-600 mb-6">Barish nahi aayi. Insurance ka paisa gaya 😅</p>
 
                   <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 mb-6">
-                    <div className="text-sm text-amber-700 font-bold uppercase tracking-wide mb-2">Premium Paid</div>
+                    <div className="text-sm text-amber-700 font-bold uppercase tracking-wide mb-2">💸 Premium De Diya Tha</div>
                     <div className="text-4xl font-bold text-amber-600">
                       -₹{policyDetails.premium.toLocaleString()}
                     </div>
                     <div className="text-xs text-amber-600 mt-2">
-                      Better luck next time!
+                      😬 Agli baar phir try karo!
                     </div>
                   </div>
                 </>
               ) : null}
 
               <Button onClick={resetGame} className="w-full h-12 text-lg font-bold" variant="default">
-                Close
+                👍 Theek Hai, Band Karo
               </Button>
             </motion.div>
           </motion.div>
@@ -663,7 +660,7 @@ export default function PitchCoverPage() {
 
       <div className="max-w-4xl mx-auto px-4 pb-8">
         <p className="text-center text-xs text-gray-400">
-          * Demo application with virtual currency. No real insurance or financial transactions. Weather data from Open-Meteo API.
+          ⚠️ Disclaimer: Ye bas mazaak hai bhai. Asli paisa nahi hai, asli insurance bhi nahi. Weather data Open-Meteo se aa raha hai. Bas timepass ke liye! 🎮
         </p>
       </div>
     </div>

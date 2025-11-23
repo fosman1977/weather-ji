@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pitch Cover Pro",
-  description: "Smart Cricket Weather Insurance",
+  title: "☔ Barish Se Bachao - Cricket Weather Insurance",
+  description: "Cricket + Weather + Insurance = No Tension! Ticket ka paisa dubne se bachao! 🏏💰",
 };
 
 export default function RootLayout({
