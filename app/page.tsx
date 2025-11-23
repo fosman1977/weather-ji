@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import {
-  Cloud, CloudRain, CloudDrizzle, Sun, Umbrella,
+  Cloud, CloudRain, CloudDrizzle, Sun,
   Shield, Wallet, AlertCircle, CheckCircle, Zap, Trophy,
   ThermometerSun, Droplets, Wind, Eye,
   Sparkles, Target, Activity
@@ -361,8 +362,7 @@ export default function PitchCoverPage() {
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3">
-                <Umbrella className="w-8 h-8" />
-                ☔ Barish Se Bachao
+                ⛈️ Weather-Ji
               </h1>
               <p className="text-green-100 text-sm mt-1">
                 {getTimeBasedGreeting().emoji} {getTimeBasedGreeting().text}
@@ -650,13 +650,16 @@ export default function PitchCoverPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="text-center py-8"
                   >
-                    <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl"
-                    >
-                      <Shield className="w-10 h-10 text-white" />
-                    </motion.div>
+                    <div className="flex justify-center mb-4">
+                      <Image
+                        src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGQ3aGRxeHI3cTBuZzBvYzRsN2FwYXN6ZXJjb2R2Zm1wbmpmdXRhZyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0HlvcRyVJeO8Gmju/giphy.gif"
+                        alt="Cricket celebration"
+                        width={192}
+                        height={144}
+                        unoptimized
+                        className="w-48 h-36 object-cover rounded-xl shadow-lg"
+                      />
+                    </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">🎉 Done! Ab Tension Free!</h3>
                     <p className="text-gray-600 mb-1">Coverage: <span className="font-bold text-purple-600">₹{policyDetails.coverage.toLocaleString()}</span></p>
                     <p className="text-sm text-gray-500 mb-6">Plan: {policyDetails.tier.name}</p>
@@ -678,8 +681,8 @@ export default function PitchCoverPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-gray-900">
+                  <Eye className="w-5 h-5 text-gray-700" />
                   🔮 Agle 12 Ghante Ka Haal
                 </CardTitle>
               </CardHeader>
