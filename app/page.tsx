@@ -1,19 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Cloud, CloudRain, CloudDrizzle, Sun, Umbrella, TrendingUp,
+  Cloud, CloudRain, CloudDrizzle, Sun, Umbrella,
   Shield, Wallet, AlertCircle, CheckCircle, Zap, Trophy,
-  ChevronDown, ThermometerSun, Droplets, Wind, Eye, ArrowRight,
-  Sparkles, Target, Award, Activity
+  ThermometerSun, Droplets, Wind, Eye,
+  Sparkles, Target, Activity
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -62,6 +60,15 @@ interface InsuranceTier {
   color: string;
 }
 
+interface PolicyDetails {
+  tier: InsuranceTier;
+  coverage: number;
+  premium: number;
+  stadium: Stadium;
+  rainRisk: number;
+  purchaseTime: Date;
+}
+
 const STADIUMS: Stadium[] = [
   { id: 'blr', name: 'M. Chinnaswamy Stadium', city: 'Bengaluru', lat: 12.9788, lon: 77.5996, capacity: 40000, drainage: 'excellent', covered: 15 },
   { id: 'mum', name: 'Wankhede Stadium', city: 'Mumbai', lat: 18.9389, lon: 72.8258, capacity: 33000, drainage: 'good', covered: 20 },
@@ -86,17 +93,13 @@ export default function PitchCoverPage() {
   const [ticketValue, setTicketValue] = useState(2500);
   const [selectedTier, setSelectedTier] = useState<InsuranceTier>(INSURANCE_TIERS[0]);
   const [hasPolicy, setHasPolicy] = useState(false);
-  const [policyDetails, setPolicyDetails] = useState<any>(null);
+  const [policyDetails, setPolicyDetails] = useState<PolicyDetails | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [matchResult, setMatchResult] = useState<'rained' | 'played' | null>(null);
   const [achievements, setAchievements] = useState<string[]>([]);
   const [totalProfitLoss, setTotalProfitLoss] = useState(0);
 
-  useEffect(() => {
-    fetchWeather();
-  }, [selectedStadium]);
-
-  const fetchWeather = async () => {
+  const fetchWeather = useCallback(async () => {
     setLoading(true);
     try {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${selectedStadium.lat}&longitude=${selectedStadium.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,surface_pressure&hourly=temperature_2m,precipitation_probability,precipitation,weather_code&timezone=auto&forecast_days=2`;
@@ -115,10 +118,10 @@ export default function PitchCoverPage() {
 
       const criticalHours = next12Hours.slice(0, 6);
       const rainRisk = Math.round(
-        criticalHours.reduce((sum, h, i) => {
+        criticalHours.reduce((sum: number, h: typeof next12Hours[0], i: number) => {
           const weight = 1 - (i * 0.1);
           return sum + (h.rainProb * weight);
-        }, 0) / criticalHours.reduce((sum, _, i) => sum + (1 - i * 0.1), 0)
+        }, 0) / criticalHours.reduce((sum: number, _: typeof next12Hours[0], i: number) => sum + (1 - i * 0.1), 0)
       );
 
       let matchSuitability: WeatherData['matchSuitability'] = 'excellent';
@@ -143,7 +146,11 @@ export default function PitchCoverPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedStadium]);
+
+  useEffect(() => {
+    fetchWeather();
+  }, [fetchWeather]);
 
   const calculatePremium = () => {
     if (!weather) return 0;
@@ -179,7 +186,7 @@ export default function PitchCoverPage() {
       coverage: ticketValue,
       premium,
       stadium: selectedStadium,
-      rainRisk: weather?.rainRisk,
+      rainRisk: weather?.rainRisk || 0,
       purchaseTime: new Date(),
     });
 
@@ -506,7 +513,7 @@ export default function PitchCoverPage() {
                       )}
                     </Button>
                   </div>
-                ) : (
+                ) : policyDetails ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -519,7 +526,7 @@ export default function PitchCoverPage() {
                     >
                       <Shield className="w-10 h-10 text-white" />
                     </motion.div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">You're Covered!</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">You&apos;re Covered!</h3>
                     <p className="text-gray-600 mb-1">Coverage: <span className="font-bold text-purple-600">₹{policyDetails.coverage.toLocaleString()}</span></p>
                     <p className="text-sm text-gray-500 mb-6">Tier: {policyDetails.tier.name}</p>
 
@@ -534,7 +541,7 @@ export default function PitchCoverPage() {
                       </Button>
                     </div>
                   </motion.div>
-                )}
+                ) : null}
               </CardContent>
             </Card>
 
@@ -600,7 +607,7 @@ export default function PitchCoverPage() {
               className="bg-white rounded-2xl w-full max-w-md p-8 text-center shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {matchResult === 'rained' ? (
+              {policyDetails && matchResult === 'rained' ? (
                 <>
                   <motion.div
                     animate={{ rotate: [0, 10, -10, 0] }}
@@ -622,7 +629,7 @@ export default function PitchCoverPage() {
                     </div>
                   </div>
                 </>
-              ) : (
+              ) : policyDetails && matchResult === 'played' ? (
                 <>
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
@@ -644,7 +651,7 @@ export default function PitchCoverPage() {
                     </div>
                   </div>
                 </>
-              )}
+              ) : null}
 
               <Button onClick={resetGame} className="w-full h-12 text-lg font-bold" variant="default">
                 Close
