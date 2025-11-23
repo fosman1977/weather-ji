@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Cloud, CloudRain, CloudDrizzle, Sun, Umbrella,
@@ -160,6 +160,8 @@ export default function PitchCoverPage() {
   const [consecutiveLosses, setConsecutiveLosses] = useState(0);
   const [totalWins, setTotalWins] = useState(0);
 
+  const policyConfirmationRef = useRef<HTMLDivElement>(null);
+
   const fetchWeather = useCallback(async () => {
     setLoading(true);
     setLoadingMessage(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
@@ -259,6 +261,11 @@ export default function PitchCoverPage() {
     if (ticketValue >= 10000 && !achievements.includes('💰 Crorepati Vibes')) {
       setAchievements(a => [...a, '💰 Crorepati Vibes']);
     }
+
+    // Scroll to confirmation on mobile
+    setTimeout(() => {
+      policyConfirmationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
   };
 
   const simulateMatch = () => {
@@ -408,15 +415,15 @@ export default function PitchCoverPage() {
           <CardContent className="p-6">
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">🏟️ Kaun Sa Maidan?</label>
             <Select value={selectedStadium.id} onValueChange={(id) => setSelectedStadium(STADIUMS.find(s => s.id === id)!)}>
-              <SelectTrigger className="w-full text-lg font-semibold h-14">
+              <SelectTrigger className="w-full text-lg font-semibold h-14 text-gray-900">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white">
                 {STADIUMS.map(stadium => (
-                  <SelectItem key={stadium.id} value={stadium.id} className="text-lg">
+                  <SelectItem key={stadium.id} value={stadium.id} className="text-lg text-gray-900">
                     <div className="flex items-center justify-between w-full">
-                      <span>{stadium.name}</span>
-                      <Badge variant="outline" className="ml-2">{stadium.city}</Badge>
+                      <span className="text-gray-900">{stadium.name}</span>
+                      <Badge variant="outline" className="ml-2 text-gray-700">{stadium.city}</Badge>
                     </div>
                   </SelectItem>
                 ))}
@@ -638,6 +645,7 @@ export default function PitchCoverPage() {
                   </div>
                 ) : policyDetails ? (
                   <motion.div
+                    ref={policyConfirmationRef}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="text-center py-8"
