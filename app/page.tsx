@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import {
@@ -179,6 +179,15 @@ export default function MatchDayProtection() {
   const [newAchievement, setNewAchievement] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
 
+  // Ref for policy confirmation card
+  const policyConfirmationRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      setTimeout(() => {
+        node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, []);
+
   // Helper to show achievement with animation
   const unlockAchievement = (achievement: string) => {
     if (!achievements.includes(achievement)) {
@@ -292,11 +301,6 @@ export default function MatchDayProtection() {
     unlockAchievement('🎯 First Timer');
     if (ticketValue >= 10000) unlockAchievement('💰 Crorepati Vibes');
     if (weather.rainRisk < 20) unlockAchievement('😎 Thrill Seeker');
-
-    // Scroll to top of page
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100);
   };
 
   // Simulate match
@@ -878,6 +882,7 @@ export default function MatchDayProtection() {
             {/* Policy Confirmation */}
             {hasPolicy && policyDetails && !showResult && (
               <motion.div
+                ref={policyConfirmationRef}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
               >
