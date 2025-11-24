@@ -292,6 +292,11 @@ export default function MatchDayProtection() {
     unlockAchievement('🎯 First Timer');
     if (ticketValue >= 10000) unlockAchievement('💰 Crorepati Vibes');
     if (weather.rainRisk < 20) unlockAchievement('😎 Thrill Seeker');
+
+    // Scroll to top of page
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   // Simulate match
@@ -457,7 +462,7 @@ export default function MatchDayProtection() {
               <SelectTrigger className="w-full text-lg h-14 font-semibold">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 {STADIUMS.map(stadium => (
                   <SelectItem key={stadium.id} value={stadium.id} className="text-lg">
                     <div className="flex items-center justify-between w-full">
@@ -852,7 +857,7 @@ export default function MatchDayProtection() {
                   <Button
                     onClick={purchaseInsurance}
                     disabled={wallet < premium}
-                    className="w-full h-16 text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg disabled:opacity-50"
+                    className="w-full h-16 text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg disabled:opacity-50 text-white"
                   >
                     {wallet < premium ? (
                       <>
@@ -1064,18 +1069,20 @@ export default function MatchDayProtection() {
       </AnimatePresence>
 
       {/* Social Proof Ticker */}
-      <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 border-y-2 border-purple-200 py-4 overflow-hidden">
-        <motion.div
-          animate={{ x: [0, -1000] }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-          className="flex gap-8 whitespace-nowrap"
-        >
-          {[...SOCIAL_PROOF, ...SOCIAL_PROOF].map((proof, i) => (
-            <div key={i} className="inline-flex items-center gap-2 text-purple-700 font-medium">
-              {proof}
-            </div>
-          ))}
-        </motion.div>
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 border-2 border-purple-200 rounded-lg py-4 overflow-hidden">
+          <motion.div
+            animate={{ x: [0, -1000] }}
+            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+            className="flex gap-8 whitespace-nowrap"
+          >
+            {[...SOCIAL_PROOF, ...SOCIAL_PROOF].map((proof, i) => (
+              <div key={i} className="inline-flex items-center gap-2 text-purple-700 font-medium">
+                {proof}
+              </div>
+            ))}
+          </motion.div>
+        </div>
       </div>
 
       {/* Footer */}
