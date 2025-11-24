@@ -27,9 +27,9 @@ export interface InsuranceTier {
  */
 const basicCover: InsuranceTier = {
   id: 'basic',
-  name: 'Basic Cover',
+  name: '🤝 Dost Plan (Basic)',
   price: 99,
-  tagline: 'Essential ticket protection',
+  tagline: 'Broke but responsible vibes 💪',
   recommended: false,
   color: 'blue',
   coverageComponents: [
@@ -60,9 +60,9 @@ const basicCover: InsuranceTier = {
  */
 const standardCover: InsuranceTier = {
   id: 'standard',
-  name: 'Standard Cover',
+  name: '👑 VIP Tier (Standard)',
   price: 199,
-  tagline: 'Complete match day protection',
+  tagline: 'Boss vibes + Full protection 🌟',
   recommended: true,
   color: 'purple',
   coverageComponents: [
@@ -113,9 +113,9 @@ const standardCover: InsuranceTier = {
  */
 const premiumCover: InsuranceTier = {
   id: 'premium',
-  name: 'Premium Cover',
+  name: '💎 Diamond Haath (Premium)',
   price: 499,
-  tagline: 'Ultimate protection for travelling fans',
+  tagline: 'Ameer log only (Papa ka paisa?) 💰',
   recommended: false,
   color: 'amber',
   coverageComponents: [
@@ -172,9 +172,9 @@ const premiumCover: InsuranceTier = {
  */
 const groupCover: InsuranceTier = {
   id: 'group',
-  name: 'Group Cover',
+  name: '👨‍👩‍👧‍👦 Squad Goals (Group)',
   price: 1499,
-  tagline: 'Perfect for families & friend groups (up to 5 people)',
+  tagline: 'Poore parivar ka insurance! (5 people) 🎉',
   recommended: false,
   color: 'green',
   coverageComponents: [
