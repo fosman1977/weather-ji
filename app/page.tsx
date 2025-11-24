@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import {
   Cloud, CloudRain, Shield, AlertCircle, CheckCircle, Info,
-  Umbrella, MapPin, Calendar, Users, TrendingUp, BadgeCheck,
-  Clock, Home, Car, Coffee, RefreshCw, Loader2, ChevronDown
+  Umbrella, MapPin, Users, TrendingUp, BadgeCheck,
+  Clock, Home, Car, Coffee, RefreshCw, Loader2, ChevronDown,
+  Wallet, Trophy, Sparkles, Zap, Sun, ThermometerSun, Droplets, Wind, Activity
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +41,37 @@ import {
   type PricingFactors
 } from '@/lib/pricing-model';
 
+// Fun loading messages
+const LOADING_MESSAGES = [
+  "Baadal se baat kar rahe hain... ☁️",
+  "Weather uncle ko phone kar rahe hain... 📞",
+  "Barometer ko chai pila rahe hain... ☕",
+  "Satellite se gossip kar rahe hain... 🛰️",
+  "Indra Dev ko WhatsApp kar rahe hain... ⚡",
+  "Mausam ka mood check kar rahe hain... 🌦️",
+];
+
+// Stadium descriptions with personality
+const STADIUM_DESCRIPTIONS: Record<string, string> = {
+  'blr': 'Bengaluru tech bros ka ghar 💻 (Good drainage, but those clouds...)',
+  'mum': 'Mumbai ka pride 🏙️ (Lekin monsoon mein... 🌧️)',
+  'kol': 'Kolkata ki crown jewel 👑 (Umbrella zaroori)',
+  'ahm': 'Biggest stadium, biggest dreams 🏟️ (Rain? Kya wo?)',
+  'che': 'Chennai hot hot hot! 🔥 (Barish rare hai)',
+  'del': 'Dilli ki dhadkan ❤️ (Weather unpredictable)',
+  'dha': 'Mountain vibes, unpredictable weather 🏔️',
+};
+
+// Social proof messages
+const SOCIAL_PROOF = [
+  '💬 Rahul from Delhi: "₹5000 bach gaye bhai!"',
+  '💬 Priya from Mumbai: "Better than stock market!"',
+  '💬 Amit: "Papa ko bhi recommend kiya"',
+  '💬 Sneha: "DLS method finally useful! 😂"',
+  '💬 Karan from Bangalore: "Tech bros approve!"',
+  '💬 Anjali: "Mere 10K bach gaye!"',
+];
+
 // Stadium data with enhanced metadata
 interface Stadium {
   id: string;
@@ -61,6 +94,24 @@ const STADIUMS: Stadium[] = [
   { id: 'del', name: 'Arun Jaitley Stadium', city: 'Delhi', lat: 28.6379, lon: 77.2432, capacity: 41000, drainage: 'good', covered: 18, team: 'Delhi Capitals' },
   { id: 'dha', name: 'HPCA Stadium', city: 'Dharamshala', lat: 32.1976, lon: 76.3259, capacity: 23000, drainage: 'excellent', covered: 5, team: 'Punjab Kings' },
 ];
+
+// Dynamic risk messages with personality
+const getRiskMessage = (risk: number) => {
+  if (risk < 20) return { text: 'Chill maar bhai ☀️', subtitle: 'Barish ka koi chance nahi' };
+  if (risk < 40) return { text: 'Thoda sa tension lelo 😅', subtitle: 'Insurance optional hai' };
+  if (risk < 60) return { text: 'Ab serious ho jao 😰', subtitle: 'Insurance le lo warna...' };
+  if (risk < 80) return { text: 'PAKKA barish aayegi! ☔', subtitle: 'Insurance is not optional' };
+  return { text: 'Bhaago! 🏃', subtitle: 'Match cancel hone wala hai!' };
+};
+
+// P/L Commentary
+const getProfitLossCommentary = (amount: number) => {
+  if (amount > 5000) return '🚀 Paisa hi paisa ho gaya!';
+  if (amount > 0) return '📈 Stonks! Acha chal raha hai';
+  if (amount === 0) return '⚖️ Perfectly balanced';
+  if (amount > -2000) return '📉 Not stonks, but manageable';
+  return '😭 Bhai rehne de, strategy change karo';
+};
 
 interface WeatherData {
   current: {
@@ -121,10 +172,27 @@ export default function MatchDayProtection() {
   // UI state
   const [showPricingBreakdown, setShowPricingBreakdown] = useState(false);
 
+  // Gamification state
+  const [wallet, setWallet] = useState(25000);
+  const [totalProfitLoss, setTotalProfitLoss] = useState(0);
+  const [achievements, setAchievements] = useState<string[]>([]);
+  const [newAchievement, setNewAchievement] = useState<string | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
+
+  // Helper to show achievement with animation
+  const unlockAchievement = (achievement: string) => {
+    if (!achievements.includes(achievement)) {
+      setAchievements(a => [...a, achievement]);
+      setNewAchievement(achievement);
+      setTimeout(() => setNewAchievement(null), 3000);
+    }
+  };
+
   // Fetch weather data
   const fetchWeather = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setLoadingMessage(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
     try {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${selectedStadium.lat}&longitude=${selectedStadium.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,surface_pressure&hourly=temperature_2m,precipitation_probability,precipitation,weather_code&timezone=auto&forecast_days=2`;
 
@@ -205,8 +273,9 @@ export default function MatchDayProtection() {
 
   // Purchase insurance
   const purchaseInsurance = () => {
-    if (!weather) return;
+    if (!weather || wallet < premium) return;
 
+    setWallet(w => w - premium);
     setPolicyDetails({
       tier: selectedTier,
       ticketValue,
@@ -218,6 +287,11 @@ export default function MatchDayProtection() {
       totalInvestment
     });
     setHasPolicy(true);
+
+    // Unlock achievements
+    unlockAchievement('🎯 First Timer');
+    if (ticketValue >= 10000) unlockAchievement('💰 Crorepati Vibes');
+    if (weather.rainRisk < 20) unlockAchievement('😎 Thrill Seeker');
   };
 
   // Simulate match
@@ -230,7 +304,6 @@ export default function MatchDayProtection() {
     let payout = 0;
 
     if (matchStatus.matchAbandoned) {
-      // Full payout scenario
       payout = calculateMaxPayout(policyDetails.tier, ticketValue, 'abandoned');
     } else if (dlsResult.payoutTier === 'severe') {
       payout = calculateMaxPayout(policyDetails.tier, ticketValue, 'severe');
@@ -238,6 +311,19 @@ export default function MatchDayProtection() {
       payout = calculateMaxPayout(policyDetails.tier, ticketValue, 'significant');
     } else if (dlsResult.payoutTier === 'minor') {
       payout = calculateMaxPayout(policyDetails.tier, ticketValue, 'minor');
+    }
+
+    // Update wallet and P/L
+    if (payout > 0) {
+      setWallet(w => w + payout);
+      const profit = payout - policyDetails.premium;
+      setTotalProfitLoss(p => p + profit);
+
+      // Achievements
+      if (payout >= 10000) unlockAchievement('🚀 Paisa Hi Paisa');
+      if (profit / policyDetails.premium >= 2) unlockAchievement('📊 200% ROI Boss');
+    } else {
+      setTotalProfitLoss(p => p - policyDetails.premium);
     }
 
     setMatchResult({
@@ -259,13 +345,15 @@ export default function MatchDayProtection() {
   // Loading state
   if (loading && !weather) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-slate-100 flex items-center justify-center">
-        <Card className="w-96">
-          <CardContent className="p-8 text-center">
-            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Fetching weather conditions...</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-gray-600 font-medium text-lg mb-4">{loadingMessage}</p>
+        </div>
       </div>
     );
   }
@@ -297,25 +385,58 @@ export default function MatchDayProtection() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-slate-100">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-indigo-700 text-white shadow-2xl">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+      {/* Header with Wallet */}
+      <header className="bg-gradient-to-r from-green-800 via-green-700 to-emerald-800 text-white shadow-2xl sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex justify-between items-start">
             <div>
               <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 mb-2">
-                <Shield className="w-10 h-10" />
-                Match Day Protection
+                ⛈️ Match Day Protection
               </h1>
-              <p className="text-indigo-200 text-sm">
-                DLS-based parametric insurance for IPL matches
+              <p className="text-green-100 text-sm">
+                DLS-based insurance + Hinglish vibes = Full Protection! 🏏💰
               </p>
             </div>
-            <Badge className="bg-white/20 text-white text-lg px-4 py-2 backdrop-blur-sm">
-              <BadgeCheck className="w-5 h-5 mr-2" />
-              IRDAI Compliant
-            </Badge>
+
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-black/20 backdrop-blur-md px-4 py-3 rounded-xl border border-white/20"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Wallet className="w-4 h-4 text-yellow-300" />
+                <span className="text-xs text-green-100">Tijori 💰</span>
+              </div>
+              <div className="font-mono font-bold text-2xl text-yellow-300">
+                ₹{wallet.toLocaleString()}
+              </div>
+              {totalProfitLoss !== 0 && (
+                <>
+                  <div className={cn("text-xs font-medium mt-1", totalProfitLoss > 0 ? "text-green-300" : "text-red-300")}>
+                    {totalProfitLoss > 0 ? '+' : ''}₹{totalProfitLoss.toLocaleString()}
+                  </div>
+                  <div className="text-[10px] text-yellow-200 mt-0.5">
+                    {getProfitLossCommentary(totalProfitLoss)}
+                  </div>
+                </>
+              )}
+            </motion.div>
           </div>
+
+          {achievements.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 flex gap-2 flex-wrap"
+            >
+              {achievements.map(a => (
+                <Badge key={a} variant="secondary" className="bg-yellow-400/20 text-yellow-100 border-yellow-300/30">
+                  <Trophy className="w-3 h-3 mr-1" />
+                  {a}
+                </Badge>
+              ))}
+            </motion.div>
+          )}
         </div>
       </header>
 
@@ -348,6 +469,13 @@ export default function MatchDayProtection() {
               </SelectContent>
             </Select>
 
+            {/* Stadium Description */}
+            <div className="mt-3 text-center">
+              <p className="text-sm text-gray-600 italic">
+                {STADIUM_DESCRIPTIONS[selectedStadium.id]}
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <Users className="w-6 h-6 mx-auto text-indigo-600 mb-2" />
@@ -375,28 +503,50 @@ export default function MatchDayProtection() {
 
         {weather && (
           <>
-            {/* Weather Overview */}
+            {/* Weather Overview with Personality */}
             <Card className={cn(
-              "border-2 shadow-lg",
+              "border-2 shadow-lg relative overflow-hidden",
               weather.rainRisk >= 70 ? "border-red-300 bg-gradient-to-br from-red-50 to-orange-50" :
               weather.rainRisk >= 40 ? "border-orange-300 bg-gradient-to-br from-orange-50 to-yellow-50" :
               "border-green-300 bg-gradient-to-br from-green-50 to-emerald-50"
             )}>
               <CardContent className="p-8">
-                <div className="flex items-center justify-between mb-6">
+                {/* Animated background elements */}
+                {weather.rainRisk >= 70 && (
+                  <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
+                    {[...Array(8)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ y: -20, x: i * 100 }}
+                        animate={{ y: 400 }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          delay: i * 0.3,
+                          ease: 'linear'
+                        }}
+                        className="absolute text-2xl"
+                      >
+                        💧
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between mb-6 relative z-10">
                   <div>
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      Rain Risk: {weather.rainRisk}%
+                      {getRiskMessage(weather.rainRisk).text}
                     </h2>
-                    <p className="text-gray-700">
-                      {weather.matchSuitability === 'excellent' && '☀️ Excellent conditions for cricket'}
-                      {weather.matchSuitability === 'good' && '⛅ Good conditions, minimal risk'}
-                      {weather.matchSuitability === 'risky' && '🌧️ Risky conditions, consider insurance'}
-                      {weather.matchSuitability === 'poor' && '☔ High risk of rain interruption'}
+                    <p className="text-gray-700 font-semibold">
+                      Rain Risk: {weather.rainRisk}%
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {getRiskMessage(weather.rainRisk).subtitle}
                     </p>
                   </div>
                   <Badge className={cn("text-white px-6 py-3 text-lg", getRiskBadgeColor(weather.rainRisk))}>
-                    {weather.rainRisk >= 70 ? 'High Risk' : weather.rainRisk >= 40 ? 'Moderate' : 'Low Risk'}
+                    {weather.rainRisk >= 70 ? '🔥 Bohot Zyada' : weather.rainRisk >= 40 ? '😐 Thoda Hai' : '😎 Kam Hai'}
                   </Badge>
                 </div>
 
@@ -415,6 +565,76 @@ export default function MatchDayProtection() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Current Weather Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 text-gray-500 mb-2">
+                    <ThermometerSun className="w-5 h-5" />
+                    <span className="text-xs font-bold uppercase">Temperature</span>
+                  </div>
+                  <div className="text-4xl font-bold text-gray-900">{weather.current.temp}°C</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 text-blue-500 mb-2">
+                    <Droplets className="w-5 h-5" />
+                    <span className="text-xs font-bold uppercase">Humidity</span>
+                  </div>
+                  <div className="text-4xl font-bold text-gray-900">{weather.current.humidity}%</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 text-cyan-500 mb-2">
+                    <Wind className="w-5 h-5" />
+                    <span className="text-xs font-bold uppercase">Wind Speed</span>
+                  </div>
+                  <div className="text-4xl font-bold text-gray-900">{weather.current.windSpeed}<span className="text-lg text-gray-500">km/h</span></div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 text-purple-500 mb-2">
+                    <Activity className="w-5 h-5" />
+                    <span className="text-xs font-bold uppercase">Pressure</span>
+                  </div>
+                  <div className="text-4xl font-bold text-gray-900">{weather.current.pressure}<span className="text-lg text-gray-500">hPa</span></div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* High Risk Warning */}
+            {weather.rainRisk >= 80 && !hasPolicy && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl p-6 text-white shadow-2xl border-4 border-red-300"
+              >
+                <div className="flex items-start gap-4">
+                  <AlertCircle className="w-12 h-12 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-2xl font-bold mb-2">🔥 Bhai Serious Warning! 🔥</h3>
+                    <p className="text-red-100 mb-3">
+                      {weather.rainRisk}% rain risk hai aur insurance nahi liya? Match 100% cancel hone wala hai!
+                      Ticket ka ₹{ticketValue.toLocaleString()} dubne wala hai! 😱
+                    </p>
+                    <div className="bg-white/20 rounded-lg p-3 text-sm">
+                      <p className="font-bold">⚠️ EMERGENCY:</p>
+                      <p className="text-red-50">
+                        Insurance le lo abhi! Premium sirf ₹{premium.toLocaleString()} hai!
+                        Barish 100% aayegi bhai! 🌧️
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* Insurance Configuration */}
             {!hasPolicy && (
@@ -631,10 +851,20 @@ export default function MatchDayProtection() {
                   {/* Purchase Button */}
                   <Button
                     onClick={purchaseInsurance}
-                    className="w-full h-16 text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg"
+                    disabled={wallet < premium}
+                    className="w-full h-16 text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg disabled:opacity-50"
                   >
-                    <Shield className="w-6 h-6 mr-3" />
-                    Purchase Protection - ₹{premium.toLocaleString()}
+                    {wallet < premium ? (
+                      <>
+                        <AlertCircle className="w-6 h-6 mr-3" />
+                        😭 Paisa Kam Pad Gaya Bhai
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="w-6 h-6 mr-3" />
+                        🛒 Le Lo Protection - ₹{premium.toLocaleString()}
+                      </>
+                    )}
                   </Button>
                 </CardContent>
               </Card>
@@ -650,10 +880,20 @@ export default function MatchDayProtection() {
                   <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
                     <CardTitle className="flex items-center gap-2 text-2xl">
                       <CheckCircle className="w-6 h-6" />
-                      Policy Confirmed
+                      🎉 Done! Ab Tension Free!
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-8">
+                    <div className="flex justify-center mb-4">
+                      <Image
+                        src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGQ3aGRxeHI3cTBuZzBvYzRsN2FwYXN6ZXJjb2R2Zm1wbmpmdXRhZyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0HlvcRyVJeO8Gmju/giphy.gif"
+                        alt="Cricket celebration"
+                        width={192}
+                        height={144}
+                        unoptimized
+                        className="w-48 h-36 object-cover rounded-xl shadow-lg"
+                      />
+                    </div>
                     <div className="bg-green-50 rounded-xl p-6 mb-6">
                       <h3 className="font-bold text-lg text-gray-900 mb-4">Coverage Summary</h3>
                       <div className="grid grid-cols-2 gap-4">
@@ -686,13 +926,19 @@ export default function MatchDayProtection() {
                       ))}
                     </div>
 
+                    <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                      <p className="text-xs text-blue-600 mb-3 font-medium text-center">
+                        Dekh lo kya hoga match mein... 🎲
+                      </p>
+                    </div>
+
                     <div className="flex gap-4">
                       <Button
                         onClick={simulateMatch}
                         className="flex-1 h-14 text-lg font-bold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
                       >
-                        <Clock className="w-5 h-5 mr-2" />
-                        Simulate Match Day
+                        <Zap className="w-5 h-5 mr-2" />
+                        ⚡ Match Simulate Karo
                       </Button>
                       <Button
                         onClick={resetSimulation}
@@ -732,14 +978,14 @@ export default function MatchDayProtection() {
                 matchResult.payout > 0 ? "bg-gradient-to-r from-green-600 to-emerald-600" : "bg-gradient-to-r from-gray-600 to-slate-600"
               )}>
                 <h2 className="text-3xl font-bold mb-2">
-                  {matchResult.abandoned ? '☔ Match Abandoned!' :
-                   matchResult.dlsApplied ? '🌧️ DLS Method Applied' :
-                   '☀️ Match Completed'}
+                  {matchResult.abandoned ? '☔ Match Cancel Ho Gaya!' :
+                   matchResult.dlsApplied ? '🌧️ DLS Method Lag Gaya!' :
+                   '☀️ Match Khel Gaya!'}
                 </h2>
                 <p className="text-white/90">
-                  {matchResult.abandoned ? 'Match called off due to rain' :
-                   matchResult.dlsApplied ? `Match reduced to ${matchResult.oversPlayed}/20 overs` :
-                   'Full 20 overs played without interruption'}
+                  {matchResult.abandoned ? 'Barish ne sab kharab kar diya 😭' :
+                   matchResult.dlsApplied ? `Match reduced to ${matchResult.oversPlayed}/20 overs (DLS FTW!)` :
+                   'Full 20 overs played. Barish nahi aayi! 🌞'}
                 </p>
               </div>
 
@@ -748,16 +994,19 @@ export default function MatchDayProtection() {
                   <>
                     <div className="bg-green-50 rounded-xl p-8 mb-6 text-center border-2 border-green-200">
                       <div className="text-sm text-green-700 font-bold uppercase tracking-wide mb-2">
-                        Payout Approved
+                        {(matchResult.payout - policyDetails.premium) > 5000 ? '🚀 JACKPOT! Paisa Hi Paisa!' : '💰 Paisa Mil Gaya Bhai'}
                       </div>
                       <div className="text-5xl font-bold text-green-600 mb-3">
                         ₹{matchResult.payout.toLocaleString()}
                       </div>
                       <div className="text-gray-700">
-                        Net Profit: <span className="font-bold text-green-600">₹{(matchResult.payout - policyDetails.premium).toLocaleString()}</span>
+                        Pure Profit: <span className="font-bold text-green-600">₹{(matchResult.payout - policyDetails.premium).toLocaleString()}</span>
                       </div>
                       <div className="text-sm text-gray-600 mt-2">
-                        ROI: {(((matchResult.payout - policyDetails.premium) / policyDetails.premium) * 100).toFixed(1)}%
+                        ROI: {(((matchResult.payout - policyDetails.premium) / policyDetails.premium) * 100).toFixed(1)}% 🚀
+                      </div>
+                      <div className="text-xs text-green-700 mt-3 font-bold">
+                        {(matchResult.payout - policyDetails.premium) > 5000 ? '🔥 Ghar jaake party do!' : '✅ Insurance FTW!'}
                       </div>
                     </div>
 
@@ -782,16 +1031,21 @@ export default function MatchDayProtection() {
                 ) : (
                   <div className="bg-gray-50 rounded-xl p-8 mb-6 text-center border-2 border-gray-200">
                     <div className="text-sm text-gray-700 font-bold uppercase tracking-wide mb-2">
-                      No Claim
+                      😅 Paisa Gaya
                     </div>
                     <div className="text-5xl font-bold text-gray-600 mb-3">
-                      ₹0
+                      -₹{policyDetails.premium.toLocaleString()}
                     </div>
                     <div className="text-gray-700">
-                      Premium Paid: <span className="font-bold text-gray-600">₹{policyDetails.premium.toLocaleString()}</span>
+                      Premium de diya tha: <span className="font-bold text-gray-600">₹{policyDetails.premium.toLocaleString()}</span>
                     </div>
                     <p className="text-sm text-gray-600 mt-4">
-                      Match completed without significant interruption. Your investment was protected, but no payout was triggered.
+                      {weather?.rainRisk && weather.rainRisk < 30
+                        ? 'Itni kam risk mein bhi insurance le liya? Overthinking much? 😅'
+                        : 'Barish nahi aayi. Premium wapis nahi milega! Better luck next time! 🍀'}
+                    </p>
+                    <p className="text-xs text-purple-600 mt-3 font-bold">
+                      💡 Tip: {weather?.rainRisk && weather.rainRisk > 50 ? 'High risk mein insurance lene ka!' : 'Low risk skip karo!'}
                     </p>
                   </div>
                 )}
@@ -801,7 +1055,7 @@ export default function MatchDayProtection() {
                   className="w-full h-14 text-lg font-bold"
                   variant={matchResult.payout > 0 ? "default" : "outline"}
                 >
-                  Try Another Scenario
+                  {matchResult.payout > 0 ? '🎉 Aur Khelo!' : '🔄 Phir Se Try Karo'}
                 </Button>
               </div>
             </motion.div>
@@ -809,16 +1063,56 @@ export default function MatchDayProtection() {
         )}
       </AnimatePresence>
 
+      {/* Social Proof Ticker */}
+      <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 border-y-2 border-purple-200 py-4 overflow-hidden">
+        <motion.div
+          animate={{ x: [0, -1000] }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+          className="flex gap-8 whitespace-nowrap"
+        >
+          {[...SOCIAL_PROOF, ...SOCIAL_PROOF].map((proof, i) => (
+            <div key={i} className="inline-flex items-center gap-2 text-purple-700 font-medium">
+              {proof}
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
       {/* Footer */}
-      <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-sm text-gray-500">
-        <p className="mb-2">
+      <footer className="max-w-6xl mx-auto px-4 py-8">
+        <p className="text-center text-sm text-gray-500 mb-2">
           <Shield className="w-4 h-4 inline mr-1" />
-          Match Day Protection uses the DLS (Duckworth-Lewis-Stern) method for parametric triggers
+          DLS method + Real weather data + Hinglish vibes = Full protection, bhai! 🏏
         </p>
-        <p>
-          Weather data provided by Open-Meteo • This is a demonstration application
+        <p className="text-center text-xs text-gray-400">
+          ⚠️ Ye serious product hai with fun UI. Actuarially sound pricing with desi humor! Weather data by Open-Meteo.
         </p>
       </footer>
+
+      {/* Achievement Unlock Popup */}
+      <AnimatePresence>
+        {newAchievement && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 0.3, repeat: 2 }}
+              className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-6 py-4 rounded-2xl shadow-2xl border-4 border-yellow-300 flex items-center gap-3"
+            >
+              <Trophy className="w-8 h-8" />
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wide">Achievement Unlocked!</div>
+                <div className="text-lg font-bold">{newAchievement}</div>
+              </div>
+              <Sparkles className="w-6 h-6" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
