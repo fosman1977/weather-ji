@@ -1,6 +1,6 @@
 {
-  "name": "pitch-cover-pro",
-  "version": "0.1.0",
+  "name": "match-day-protection",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
